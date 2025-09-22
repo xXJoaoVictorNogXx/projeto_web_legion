@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
+const bcrypt = require("bcrypt");
 
 const app = express();
 app.use(express.json());
@@ -80,6 +81,39 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
+app.post("/api/login", async (req, res) => {
+  const email = String(req.body?.email || "").trim();
+  const password = String(req.body?.password || "");
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email e senha são obrigatórios." });
+  }
+
+  try {
+      const { rows } = await pool.query(
+      "SELECT id, name, email, password FROM users WHERE email = $1",
+      [email]
+    );
+
+    const user = rows[0];
+    if (!user) {
+      return res.status(401).json({ error: "Credenciais inválidas" });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Credenciais inválidas" });
+    }
+
+    const { password: _, ...userWithoutPassword } = user;
+    res.json({ message: "Login bem-sucedido!", user: userWithoutPassword });
+
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // atualiza
 app.put("/api/users/:id", async (req, res) => {
   const id = parseInt(req.params.id, 10);
@@ -110,6 +144,28 @@ app.delete("/api/users/:id", async (req, res) => {
     );
     if (!rowCount) return res.status(404).json({ error: "Not found" });
     res.status(204).send();
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/users", async (req, res) => {
+  const name = String(req.body?.name || "").trim();
+  const email = String(req.body?.email || "").trim();
+  const password = String(req.body?.password || ""); 
+  
+  if (name.length < 2) return res.status(400).json({ error: "name inválido" });
+  if (!email.includes("@")) return res.status(400).json({ error: "email inválido" });
+  if (password.length < 6) return res.status(400).json({ error: "senha deve ter no mínimo 6 caracteres" });
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10); 
+
+    const { rows } = await pool.query(
+      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email",
+      [name, email, hashedPassword]
+    );
+    res.status(201).json(rows[0]);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
