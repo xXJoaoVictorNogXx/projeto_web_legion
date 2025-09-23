@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Link from 'next/link';
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -16,36 +17,37 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const [isloading, setisLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setisLoading(true);
-        setError("");
+     const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setisLoading(true);
+    setError('');
 
-        try {
-            const response = await fetch(`${API}/login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
-            });
+    try {
+      const response = await fetch(`${API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Erro ao fazer login");
-            }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Falha no login');
+      }
 
-            const data = await response.json();
-            console.log("Login bem-sucedido:", data);
-            alert("Login bem-sucedido!");
+      const data = await response.json();
+      console.log('Login bem-sucedido:', data);
+      
+      // Em uma app real, você salvaria o token e os dados do usuário aqui
+      
+      // Redireciona para a página de relatórios após o sucesso!
+      router.push('/admin/relatorios'); 
 
-            router.push("/");
-
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setisLoading(false);
-        }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setisLoading(false);
+    }
+  
 
 
     };    return (
@@ -82,10 +84,17 @@ export default function LoginPage() {
                     </div>
                     {error && <p className='text-sm font-medium text-destructive'>{error}</p>}
                 </CardContent>
-                <CardFooter>
-                    <Button type='submit' className='w-full' disabled={isloading}>
-                        {isloading ? "Entrando..." : "Entrar"}
-                    </Button>
+                <CardFooter className="flex flex-col gap-4">
+                <Button type="submit" className="w-full" disabled={isloading}>
+                    {isloading ? 'Entrando...' : 'Entrar'}
+                </Button>
+
+                <div className="mt-4 text-center text-sm">
+                    Não tem uma conta?{" "}
+                    <Link href="/cadastro" className="underline">
+                    Cadastre-se
+                    </Link>
+                </div>
                 </CardFooter>
              </form>
             </Card>

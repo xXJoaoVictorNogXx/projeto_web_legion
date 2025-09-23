@@ -171,6 +171,75 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
+app.post("/api/register", async (req, res) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: "Nome, email e senha são obrigatórios." });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: "A senha deve ter no mínimo 6 caracteres." });
+  }
+  if (!email.includes("@")) {
+    return res.status(400).json({ error: "Formato de email inválido." });
+  }
+
+  try {
+    const existingUser = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+    if (existingUser.rowCount > 0) {
+      return res.status(409).json({ error: "Este email já está em uso." }); // 409 Conflict
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const defaultRole = 'PROFESSOR';
+    const { rows } = await pool.query(
+      "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role",
+      [name, email, hashedPassword, defaultRole]
+    );
+
+    // --- Enviar resposta de sucesso ---
+    res.status(201).json(rows[0]); // 201 Created
+
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+});
+
+app.get("/api/reports/summary", async (_req, res) => {
+  try {
+    // Conta o total de usuários
+    const totalUsersResult = await pool.query("SELECT COUNT(*) AS total_users FROM users");
+    const totalUsers = totalUsersResult.rows[0].total_users;
+
+    // Conta usuários por cargo (role)
+    const usersByRoleResult = await pool.query(
+      "SELECT role, COUNT(*) as count FROM users GROUP BY role"
+    );
+    const usersByRole = usersByRoleResult.rows;
+
+    res.json({
+      total_users: parseInt(totalUsers, 10),
+      users_by_role: usersByRole,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Endpoint que retorna todos os dados de usuários para o CSV
+app.get("/api/reports/users-csv", async (_req, res) => {
+    try {
+        const { rows } = await pool.query(
+            "SELECT id, name, email, role FROM users ORDER BY name"
+        );
+        res.json(rows);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.listen(PORT, () => {
   console.log(`[API] Listening on ${PORT}`);
 });
