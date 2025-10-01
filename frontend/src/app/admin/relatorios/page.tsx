@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Papa from 'papaparse'; // Importamos a biblioteca para CSV
+import { ThemeProvider as NextThemesProvider } from "next-themes"
 
 // --- Tipagem para os dados do sumário ---
 interface RoleCount {

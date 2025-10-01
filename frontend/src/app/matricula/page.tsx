@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useTheme } from "next-themes";
 
 // Definindo o tipo para um Usuário
 interface User {
@@ -35,7 +36,7 @@ export default function UsersPage() {
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const router = useRouter();
-
+  const { theme, setTheme } = useTheme();
   // --- FUNÇÕES DE LÓGICA (Equivalente às suas funções antigas) ---
 
   // Função para checar a saúde da API
@@ -137,6 +138,8 @@ export default function UsersPage() {
       >
         ir para cadastro Página
       </Button>
+
+      <Button onClick={() => setTheme("light")}>mudar tema</Button>
 
       <div className="w-full max-w-md">
         <h3 className="text-xl font-semibold mb-4">Adicionar Novo Usuário</h3>
