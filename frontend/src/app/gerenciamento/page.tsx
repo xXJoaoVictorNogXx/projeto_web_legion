@@ -15,7 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useTheme } from "next-themes";
 
 // Definindo o tipo para um Usuário
 interface User {
@@ -36,7 +35,7 @@ export default function UsersPage() {
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
+
   // --- FUNÇÕES DE LÓGICA (Equivalente às suas funções antigas) ---
 
   // Função para checar a saúde da API
@@ -127,19 +126,6 @@ export default function UsersPage() {
   return (
     <main className="flex min-h-screen flex-col items-center p-8 md:p-12 lg:p-24">
       <h1 className="text-3xl font-bold mb-6">Gerenciamento de Usuários</h1>
-      <p className="mb-8">
-        Status API: <strong className="text-green-600">{status}</strong>
-      </p>
-
-      <Button
-        variant="secondary"
-        className="button-primary"
-        onClick={() => router.push("cadastro")}
-      >
-        ir para cadastro Página
-      </Button>
-
-      <Button onClick={() => setTheme("light")}>mudar tema</Button>
 
       <div className="w-full max-w-md">
         <h3 className="text-xl font-semibold mb-4">Adicionar Novo Usuário</h3>
@@ -169,42 +155,46 @@ export default function UsersPage() {
       </div>
       <hr />
 
-      <h3>Usuários Cadastrados</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id}>
-              <td>{user.id}</td>
-              <td>
-                <input
-                  value={user.name}
-                  onChange={(e) => handleInputChange(e, user.id, "name")}
-                />
-              </td>
-              <td>
-                <input
-                  value={user.email}
-                  onChange={(e) => handleInputChange(e, user.id, "email")}
-                />
-              </td>
-              <td>
-                <button onClick={() => handleSaveUser(user.id)}>Salvar</button>
-                <button onClick={() => handleDeleteUser(user.id)}>
-                  Excluir
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="border p-4 rounded-lg shadow-md w-full max-w-4xl">
+        <Table>
+          <TableCaption>Lista de Usuários Cadastrados</TableCaption>
+          <TableHeader>
+            <TableRow className="flex justify-between">
+              <TableHead>ID</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>{user.id}</TableCell>
+                <TableCell>
+                  <input
+                    value={user.name}
+                    onChange={(e) => handleInputChange(e, user.id, "name")}
+                  />
+                </TableCell>
+                <TableCell>
+                  <input
+                    value={user.email}
+                    onChange={(e) => handleInputChange(e, user.id, "email")}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Button onClick={() => handleSaveUser(user.id)}>
+                    Salvar
+                  </Button>
+                  <Button onClick={() => handleDeleteUser(user.id)}>
+                    Excluir
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </main>
   );
 }
