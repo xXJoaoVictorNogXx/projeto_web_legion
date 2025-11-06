@@ -7,3 +7,12 @@ CREATE TABLE
     );
 
 ALTER TABLE users ADD COLUMN role VARCHAR(50) NOT NULL DEFAULT 'PROFESSOR';
+
+CREATE TABLE 
+    IF NOT EXISTS students (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        birthdate VARCHAR(120) NOT NULL UNIQUE,
+        gender VARCHAR(10) NOT NULL,
+        race VARCHAR(50) NOT NULL
+    );

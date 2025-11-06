@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { Header } from "@/components/Header";
 
 export default function RootProvider({
   children,
@@ -13,7 +14,7 @@ export default function RootProvider({
 
   return (
     <div>
-      {renderNavbar ? null : <div>navbar</div>}
+      {renderNavbar ? null : <Header />}
 
       {children}
     </div>

@@ -32,7 +32,6 @@ export default function RegisterPage() {
 
     try {
       const response = await fetch(`${API}/register`, {
-        // Chama a nova rota /register
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
@@ -48,7 +47,7 @@ export default function RegisterPage() {
       alert(
         "Cadastro realizado com sucesso! Você será redirecionado para a tela de login."
       );
-      router.push("/login"); // Redireciona para o login após o sucesso
+      router.push("/login");
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
