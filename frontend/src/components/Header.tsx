@@ -23,7 +23,7 @@ export function Header() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="w-full flex p-4 border-b-2 justify-endcd ">
+    <header className="w-full flex p-4 border-b-2 justify-end ">
       <div className="justify-between flex w-full items-center">
         <Image
           src="/logo.png"
@@ -66,6 +66,17 @@ export function Header() {
             )}
           >
             Gerenciamento
+          </Link>
+          <Link
+            href={"/aprovacao"}
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-primary",
+              pathname.startsWith("/aprovacao")
+                ? "text-blue-500"
+                : "text-muted-foreground"
+            )}
+          >
+            Aprovação
           </Link>
           <Button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

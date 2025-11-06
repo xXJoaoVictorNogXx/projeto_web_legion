@@ -34,6 +34,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
 
   // --- FUNÇÕES DE LÓGICA (Equivalente às suas funções antigas) ---
@@ -60,12 +61,13 @@ export default function UsersPage() {
     }
   };
 
-  // Função para adicionar um novo usuário
-  const handleAddUser = async () => {
+  // Função deve buscar usuários para que o gerencimento seja feito, visto que aplicação vai possui tela de cadastramento e login
+  const handleFoundUser = async () => {
     if (!newName.trim() || !newEmail.trim()) {
-      return alert("Preencha nome e email.");
+      return alert("Preencha nome, email e senha");
     }
-    await fetch(`${API}/users`, {
+    // Criar validação para email ou nome não existem
+    await fetch(`${API}/users/:id`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: newName, email: newEmail }),
@@ -148,14 +150,14 @@ export default function UsersPage() {
               placeholder="Email"
             />
           </div>
-          <Button onClick={handleAddUser} className="w-full">
+          <Button onClick={handleFoundUser} className="w-full">
             Adicionar
           </Button>
         </div>
       </div>
       <hr />
 
-      <div className="border p-4 rounded-lg shadow-md w-full max-w-4xl">
+      <div className="border p-4 rounded-lg shadow-md w-full max-w-4xl mt-5">
         <Table>
           <TableCaption>Lista de Usuários Cadastrados</TableCaption>
           <TableHeader>
