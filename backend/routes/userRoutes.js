@@ -4,7 +4,7 @@ const router = express.Router();
 const { pool } = require("../db"); // Importa o pool
 const bcrypt = require("bcrypt");
 
-// Health check (movido para cá, mas poderia ter um arquivo próprio)
+// Health check
 router.get("/health", async (_req, res) => {
   try {
     await pool.query("SELECT 1");
@@ -14,9 +14,8 @@ router.get("/health", async (_req, res) => {
   }
 });
 
-// --- CRUD DE USUÁRIOS (ADMIN) ---
 
-// (CORRIGIDO) Cria usuário (Admin)
+// Cria usuário
 router.post("/users", async (req, res) => {
   const { name, email, password, role } = req.body;
 
@@ -26,7 +25,7 @@ router.post("/users", async (req, res) => {
   if (password.length < 6) return res.status(400).json({ error: "Senha deve ter no mínimo 6 caracteres" });
 
   try {
-    // CORREÇÃO: Adicionada verificação de email existente
+    // Verificação de email existente
     const existingUser = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
     if (existingUser.rowCount > 0) {
       return res.status(409).json({ error: "Este email já está em uso." });
@@ -35,7 +34,7 @@ router.post("/users", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const { rows } = await pool.query(
       "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role",
-      [name, email, hashedPassword, role] // CORREÇÃO: Inserindo o 'role'
+      [name, email, hashedPassword, role] 
     );
     res.status(201).json(rows[0]);
   } catch (e) {
@@ -47,7 +46,7 @@ router.post("/users", async (req, res) => {
 router.get("/users", async (_req, res) => {
   try {
     const { rows } = await pool.query(
-      "SELECT id, name, email, role FROM users ORDER BY id" // Adicionei 'role'
+      "SELECT id, name, email, role FROM users ORDER BY id" 
     );
     res.json(rows);
   } catch (e) {
@@ -60,7 +59,7 @@ router.get("/users/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const { rows } = await pool.query(
-      "SELECT id, name, email, role FROM users WHERE id = $1", // Adicionei 'role'
+      "SELECT id, name, email, role FROM users WHERE id = $1", 
       [id]
     );
     if (!rows[0]) return res.status(404).json({ error: "Not found" });
@@ -73,15 +72,14 @@ router.get("/users/:id", async (req, res) => {
 // Atualiza
 router.put("/users/:id", async (req, res) => {
   const id = parseInt(req.params.id, 10);
-  const { name, email, role } = req.body; // Admin pode atualizar o 'role'
-
+  const { name, email, role } = req.body;
   // Validações
   if (!name || !email || !role) return res.status(400).json({ error: "Nome, email e role são obrigatórios" });
 
   try {
     const { rows } = await pool.query(
       "UPDATE users SET name=$1, email=$2, role=$3 WHERE id=$4 RETURNING id, name, email, role",
-      [name, email, role, id] // Atualiza o 'role'
+      [name, email, role, id] 
     );
     if (!rows[0]) return res.status(404).json({ error: "Not found" });
     res.json(rows[0]);
@@ -103,7 +101,7 @@ router.delete("/users/:id", async (req, res) => {
 });
 
 
-// --- ROTAS PÚBLICAS (AUTENTICAÇÃO) ---
+// Rotas Autenticação
 
 // Login
 router.post("/login", async (req, res) => {
@@ -112,7 +110,7 @@ router.post("/login", async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      "SELECT * FROM users WHERE email = $1", // Pega tudo, inclusive a senha
+      "SELECT * FROM users WHERE email = $1", 
       [email]
     );
     const user = rows[0];
@@ -128,7 +126,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Cadastro público
+// Cadastro 
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -143,7 +141,7 @@ router.post("/register", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const defaultRole = 'PROFESSOR'; // Define um cargo padrão
+    const defaultRole = 'PROFESSOR'; 
     const { rows } = await pool.query(
       "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role",
       [name, email, hashedPassword, defaultRole]
