@@ -46,16 +46,23 @@ export default function SimpleApprovePage() {
 
   const fetchPendentes = async () => {
     try {
-      // Busca a lista COMPLETA de alunos pendentes
       const response = await fetch(`${API}/pre-matricula/status/PENDENTE`);
       const data = await response.json();
-      setPendentes(data);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+      // --- PROTEÇÃO AQUI ---
+      if (Array.isArray(data)) {
+        setPendentes(data); // É uma lista, pode salvar
+      } else {
+        console.error("A API retornou um erro ou formato inválido:", data);
+        setPendentes([]); // Salva lista vazia para não quebrar o .map
+        // Opcional: Mostrar um alerta se vier um erro
+        if (data.error) alert(`Erro da API: ${data.error}`);
+      }
     } catch (error) {
-      alert("Erro ao carregar lista.");
+      console.error("Erro de rede:", error);
+      setPendentes([]);
     }
   };
-
   // 2. FUNÇÃO DE APROVAR
   const handleApprove = async () => {
     if (!selectedStudent) return;

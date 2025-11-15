@@ -108,16 +108,12 @@ router.post('/pre-matricula', async (req, res) => {
 
 router.get('/pre-matriculas', async (_req, res) => {
   try {
-    // 1. Selecionamos as colunas usando o nome real no banco (snake_case)
     const { rows } = await pool.query(
-      `SELECT 
-         id, status, child_name, birth_date, gender, race, 
-         guardian_name, guardian_cpf, guardian_phone
+      `SELECT  *
        FROM pre_matriculas ORDER BY child_name`
+        
     );
 
-    // 2. Usamos a função auxiliar para converter tudo para camelCase
-    // O frontend vai receber: { childName: "...", guardianName: "..." }
     res.json(toCamelCase(rows)); 
 
   } catch (e) {
@@ -132,7 +128,7 @@ router.get('/pre-matricula/status/:status', async (req, res) => {
     
     const { rows } = await pool.query(
       // Seleciona em snake_case (nativo do banco)
-      "SELECT id, child_name, guardian_name, created_at, status FROM pre_matriculas WHERE status = $1 ORDER BY created_at DESC", 
+      "SELECT * FROM pre_matriculas WHERE status = $1 ORDER BY created_at DESC", 
       [status.toUpperCase()] 
     );
 

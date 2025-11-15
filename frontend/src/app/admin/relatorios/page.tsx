@@ -25,8 +25,9 @@ interface User {
 
 interface Student {
   id: number;
-  child_name: string;
-  guardian_name: string;
+  childName: string; // Antes: child_name
+  guardianName: string; // Antes: guardian_name
+  guardianCpf: string; // Adicionado para evitar erros
   status: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
@@ -105,11 +106,12 @@ export default function ReportsPage() {
       if (activeTab === "students") {
         const student = item as Student;
         return (
-          student.child_name.toLowerCase().includes(lowerCaseFilter) ||
-          student.guardian_name.toLowerCase().includes(lowerCaseFilter) ||
-          student.status.toLowerCase().includes(lowerCaseFilter)
+          student.childName?.toLowerCase().includes(lowerCaseFilter) ||
+          student.guardianName?.toLowerCase().includes(lowerCaseFilter) ||
+          student.status?.toLowerCase().includes(lowerCaseFilter)
         );
       }
+
       return false;
     });
   }, [filter, activeTab, allUsers, allStudents]); // Recalcula se o filtro ou a aba mudarem
@@ -242,10 +244,10 @@ export default function ReportsPage() {
                     return (
                       <TableRow key={student.id}>
                         <TableCell className="font-medium">
-                          {student.child_name}
+                          {student.childName}
                         </TableCell>
-                        <TableCell>{student.guardian_name}</TableCell>
-                        <TableCell>{student.guardian_cpf}</TableCell>
+                        <TableCell>{student.guardianName}</TableCell>
+                        <TableCell>{student.guardianCpf}</TableCell>
                         <TableCell>{student.status}</TableCell>
                       </TableRow>
                     );
