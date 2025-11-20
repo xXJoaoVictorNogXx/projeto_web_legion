@@ -7,6 +7,8 @@ const bcrypt = require("bcrypt");
 // Health check
 router.get("/health", async (_req, res) => {
   try {
+
+    console.log("Health check requested");
     await pool.query("SELECT 1");
     res.json({ status: "ok", db: "up" });
   } catch (e) {

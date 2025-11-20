@@ -16,7 +16,9 @@ const pool = new Pool({
   port: parseInt(process.env.DB_PORT || "5432", 10),
   user: required("DB_USER"),
   password: required("DB_PASSWORD"),
-  database: required("DB_NAME")
+  database: required("DB_NAME"),
+
+  ssl: process.env.DB_HOST !== 'localhost' ? { rejectUnauthorized: false } : false
 });
 
 module.exports = { pool };

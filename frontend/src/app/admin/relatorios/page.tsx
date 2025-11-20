@@ -25,9 +25,9 @@ interface User {
 
 interface Student {
   id: number;
-  childName: string; // Antes: child_name
-  guardianName: string; // Antes: guardian_name
-  guardianCpf: string; // Adicionado para evitar erros
+  childName: string;
+  guardianName: string;
+  guardianCpf: string;
   status: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
