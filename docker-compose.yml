@@ -16,27 +16,27 @@ services:
       timeout: 3s
       retries: 20
 
-  backend:
-    build:
-      context: ./backend
-    environment:
-      NODE_ENV: development
-      PORT: ${PORT}
-      CORS_ORIGIN: ${CORS_ORIGIN}
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    ports:
-      - "5000:3000"
-    command: npm run dev
+  # backend:
+  #   build:
+  #     context: ./backend
+  #   environment:
+  #     NODE_ENV: development
+  #     PORT: ${PORT}
+  #     CORS_ORIGIN: ${CORS_ORIGIN}
+  #     DB_HOST: db
+  #     DB_PORT: 5432
+  #     DB_USER: ${DB_USER}
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #     DB_NAME: ${DB_NAME}
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./backend:/app
+  #     - /app/node_modules
+  #   ports:
+  #     - "5000:3000"
+  #   command: npm run dev
 
   # frontend:
   #   build:
@@ -45,10 +45,11 @@ services:
   #     backend:
   #       condition: service_started
   #   ports:
-  #     - "8080:3000"
+  #     - "8000:4000"
   #   volumes:
   #     - ./frontend:/app
-  #     - /app/node_modules
+  #     - ./frontend/.next:/app/.next
+  #   command: npx next dev -p 4000
 
 volumes:
   postgres-data:

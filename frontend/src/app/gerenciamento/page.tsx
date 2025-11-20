@@ -1,4 +1,3 @@
-// Use no topo do arquivo para indicar que é um componente interativo
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -15,31 +14,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
 
-// Definindo o tipo para um Usuário
 interface User {
   id: number;
   name: string;
   email: string;
 }
 
-// URL da API vinda das variáveis de ambiente que configuramos
 const API = process.env.NEXT_PUBLIC_API_URL;
 
 export default function UsersPage() {
-  // --- GERENCIAMENTO DE ESTADO ---
-  // Em vez de pegar elementos do DOM, criamos "estados" para guardar os dados.
-  // O React irá redesenhar a tela automaticamente quando um estado for alterado.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [status, setStatus] = useState("checando...");
   const [users, setUsers] = useState<User[]>([]);
-  const [newName, setNewName] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
 
-  // --- FUNÇÕES DE LÓGICA (Equivalente às suas funções antigas) ---
-
-  // Função para checar a saúde da API
   const healthCheck = async () => {
     try {
       const response = await fetch(`${API}/health`);
@@ -50,7 +41,6 @@ export default function UsersPage() {
     }
   };
 
-  // Função para carregar os usuários
   const loadUsers = async () => {
     try {
       const response = await fetch(`${API}/users`);
@@ -61,29 +51,24 @@ export default function UsersPage() {
     }
   };
 
-  // Função deve buscar usuários para que o gerencimento seja feito, visto que aplicação vai possui tela de cadastramento e login
   const handleFoundUser = async () => {
-    if (!newName.trim() || !newEmail.trim()) {
-      return alert("Preencha nome, email e senha");
+    if (!name.trim() || !email.trim()) {
+      return alert("Preencha nome, email");
     }
-    // Criar validação para email ou nome não existem
     await fetch(`${API}/users/:id`, {
-      method: "POST",
+      method: "GET",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newName, email: newEmail }),
+      body: JSON.stringify({ name: name, email: email }),
     });
-    setNewName("");
-    setNewEmail("");
-    await loadUsers(); // Recarrega a lista
+
+    await loadUsers();
   };
 
-  // Função para deletar um usuário
   const handleDeleteUser = async (id: number) => {
     await fetch(`${API}/users/${id}`, { method: "DELETE" });
     await loadUsers(); // Recarrega a lista
   };
 
-  // Função para salvar (atualizar) um usuário
   const handleSaveUser = async (id: number) => {
     // Encontra o usuário no estado atual para pegar os valores dos inputs
     const userToUpdate = users.find((u) => u.id === id);
@@ -98,10 +83,10 @@ export default function UsersPage() {
       }),
     });
     alert("Usuário salvo!");
-    await loadUsers(); // Recarrega a lista para garantir consistência
+    await loadUsers();
   };
 
-  // Função para atualizar o valor de um input na lista
+  // atualizar o valor de um input na lista
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     id: number,
@@ -116,15 +101,10 @@ export default function UsersPage() {
     setUsers(newUsers);
   };
 
-  // useEffect é executado uma vez quando o componente é carregado na tela.
-  // Perfeito para buscar os dados iniciais.
   useEffect(() => {
     healthCheck();
     loadUsers();
-  }, []); // O array vazio `[]` garante que execute apenas uma vez.
-
-  // --- RENDERIZAÇÃO (O que aparece na tela) ---
-  // Este código JSX substitui a manipulação de `innerHTML` e `createElement`.
+  }, []);
   return (
     <main className="flex min-h-screen flex-col items-center p-8 md:p-12 lg:p-24">
       <h1 className="text-3xl font-bold mb-6">Gerenciamento de Usuários</h1>
@@ -136,8 +116,8 @@ export default function UsersPage() {
             <Label htmlFor="name">Nome</Label>
             <Input
               type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Nome"
             />
           </div>
@@ -145,57 +125,51 @@ export default function UsersPage() {
             <Label htmlFor="email">Email</Label>
             <Input
               type="email"
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
             />
           </div>
           <Button onClick={handleFoundUser} className="w-full">
-            Adicionar
+            Buscar
           </Button>
         </div>
       </div>
       <hr />
 
-      <div className="border p-4 rounded-lg shadow-md w-full max-w-4xl mt-5">
-        <Table>
-          <TableCaption>Lista de Usuários Cadastrados</TableCaption>
-          <TableHeader>
-            <TableRow className="flex justify-between">
-              <TableHead>ID</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.id}</TableCell>
-                <TableCell>
-                  <input
-                    value={user.name}
-                    onChange={(e) => handleInputChange(e, user.id, "name")}
-                  />
-                </TableCell>
-                <TableCell>
-                  <input
-                    value={user.email}
-                    onChange={(e) => handleInputChange(e, user.id, "email")}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Button onClick={() => handleSaveUser(user.id)}>
-                    Salvar
-                  </Button>
-                  <Button onClick={() => handleDeleteUser(user.id)}>
-                    Excluir
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <div className="p-4w-full max-w-4xl mt-5">
+        <Card>
+          <CardContent>
+            <Table>
+              <TableCaption>Lista de Usuários Cadastrados</TableCaption>
+              <TableHeader>
+                <TableRow className="flex justify-between">
+                  <TableHead>ID</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.id}</TableCell>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Button onClick={() => handleSaveUser(user.id)}>
+                        Salvar
+                      </Button>
+                      <Button onClick={() => handleDeleteUser(user.id)}>
+                        Excluir
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

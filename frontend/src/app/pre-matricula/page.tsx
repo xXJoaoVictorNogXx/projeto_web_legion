@@ -32,21 +32,6 @@ const API = process.env.NEXT_PUBLIC_API_URL;
 export default function PreMatriculaPage() {
   const router = useRouter();
 
-  const steps = [
-    {
-      title: "Step 1",
-      description: "Step 1 description",
-    },
-    {
-      title: "Step 2",
-      description: "Step 2 description",
-    },
-    {
-      title: "Step 3",
-      description: "Step 3 description",
-    },
-  ];
-
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -152,30 +137,24 @@ export default function PreMatriculaPage() {
         </h1>
         {/* --- INÍCIO: BARRA DE PASSOS NAVEGÁVEL --- */}
         <div className="flex w-full max-w-2xl justify-between items-center mb-8">
-          {/* Cria um array com 5 posições (de 0 a 4), 
-        e o 'map' o transforma em 5 botões (passo 1 a 5) 
-      */}
           {Array.from({ length: Total_Steps }, (_, index) => {
             const stepNumber = index + 1;
-            const isCompleted = step > stepNumber; // O passo já foi concluído
-            const isCurrent = step === stepNumber; // É o passo atual
+            const isCompleted = step > stepNumber;
+            const isCurrent = step === stepNumber;
 
             return (
               <Button
+                type="button"
                 key={stepNumber}
-                // 1. Estilo Dinâmico
                 variant={
                   isCurrent ? "default" : isCompleted ? "default" : "outline"
                 }
                 size="icon"
-                // 2. Classe Dinâmica para cor de "completado"
                 className={`rounded-full ${
                   isCompleted ? "bg-green-600 hover:bg-green-700" : ""
                 }`}
-                // 3. Ação de Clique
                 onClick={() => setStep(stepNumber)}
               >
-                {/* 4. Lógica de Ícone */}
                 {isCompleted ? <Check className="h-5 w-5" /> : stepNumber}
               </Button>
             );
@@ -196,7 +175,6 @@ export default function PreMatriculaPage() {
                   id="childName"
                   name="childName"
                   required
-                  // onChange={handleInputChange}
                   value={section1.childName}
                   onChange={(e) =>
                     setSection1((pv) => ({ ...pv, childName: e.target.value }))
@@ -292,7 +270,6 @@ export default function PreMatriculaPage() {
                     id="healthIssuesDescription"
                     name="healthIssuesDescription"
                     placeholder="Ex: Alergia a lactose, asma, etc."
-                    value={section1.healthIssuesDescription}
                   />
                 </div>
               )}

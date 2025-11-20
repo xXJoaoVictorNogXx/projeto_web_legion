@@ -1,206 +1,208 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation"; // Hook para pegar o ID da URL
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton"; // Para o efeito de loading
-import { Label } from "@radix-ui/react-label";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
-// --- Tipagem para os dados da pré-matrícula ---
-// (Ajuste os campos conforme a sua tabela `pre_enrollments`)
-interface PreEnrollmentData {
+// Interface simples: O objeto tem qualquer coisa que vier da API
+interface PreMatricula {
   id: number;
   childName: string;
-  birthDate: string;
-  gender: string;
-  race: string;
-  susCard?: string; // Campos opcionais
-  hasHealthIssues: boolean;
-  healthIssuesDescription?: string;
   guardianName: string;
-  guardianCpf: string;
-  guardianPhone: string;
-  addressStreet: string;
-  addressNumber: string;
-  addressNeighborhood: string;
-  addressCity: string;
-  addressState: string;
-  addressCep: string;
-  status: string; // Ex: PENDENTE, APROVADO, REJEITADO
-  createdAt: string; // Data de criação
+  status: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any; // Aceita qualquer outro campo (simplifica a tipagem)
 }
 
-export default function ApprovePreEnrollmentPage() {
-  const router = useRouter();
-  const params = useParams(); // Hook para pegar parâmetros da URL
-  const preEnrollmentId = params.id as string; // Pega o ID da URL
-
-  const [preEnrollment, setPreEnrollment] = useState<PreEnrollmentData | null>(
+export default function SimpleApprovePage() {
+  const [pendentes, setPendentes] = useState<PreMatricula[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<PreMatricula | null>(
     null
   );
-  const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
-  const [error, setError] = useState("");
 
-  // --- SUA TAREFA #1: Buscar os dados da pré-matrícula na API ---
+  // 1. CARREGA TUDO AO ABRIR A PÁGINA
   useEffect(() => {
-    if (!preEnrollmentId) return; // Se não tiver ID, não faz nada
+    fetchPendentes();
+  }, []);
 
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError("");
-      try {
-        // Dica: Você precisa criar um endpoint no backend: GET /api/pre-enrollments/:id
-        const response = await fetch(
-          `${API}/pre-enrollments/${preEnrollmentId}`
-        );
-        if (!response.ok) throw new Error("Pré-matrícula não encontrada.");
-        const data: PreEnrollmentData = await response.json();
-        setPreEnrollment(data);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
-        setError(err.message);
-        setPreEnrollment(null); // Limpa os dados se der erro
-      } finally {
-        setIsLoading(false);
+  const fetchPendentes = async () => {
+    try {
+      const response = await fetch(`${API}/pre-matricula/status/PENDENTE`);
+      const data = await response.json();
+
+      // --- PROTEÇÃO AQUI ---
+      if (Array.isArray(data)) {
+        setPendentes(data); // É uma lista, pode salvar
+      } else {
+        console.error("A API retornou um erro ou formato inválido:", data);
+        setPendentes([]); // Salva lista vazia para não quebrar o .map
+        // Opcional: Mostrar um alerta se vier um erro
+        if (data.error) alert(`Erro da API: ${data.error}`);
       }
-    };
-
-    fetchData();
-  }, [preEnrollmentId]); // Roda sempre que o ID mudar
-
-  // --- SUA TAREFA #2: Implementar a lógica de Aprovação ---
+    } catch (error) {
+      console.error("Erro de rede:", error);
+      setPendentes([]);
+    }
+  };
+  // 2. FUNÇÃO DE APROVAR
   const handleApprove = async () => {
+    if (!selectedStudent) return;
     setIsApproving(true);
-    setError("");
 
-    console.log(`Aprovando pré-matrícula ID: ${preEnrollmentId}`);
+    try {
+      // Manda o comando para o backend aprovar este ID
+      await fetch(`${API}/pre-matriculas/${selectedStudent.id}/approve`, {
+        method: "PUT",
+      });
 
-    // Dica: Chame um novo endpoint no backend: PUT /api/pre-enrollments/:id/approve
-    // Este endpoint no backend deve:
-    // 1. Mudar o status da pré-matrícula para "APROVADO".
-    // 2. Criar o registro correspondente na tabela principal de alunos (`students`).
-    // 3. (Opcional) Gerar login/senha para o responsável e vincular.
-    // 4. Retornar sucesso ou erro.
-
-    // Exemplo de como poderia ser:
-    /*
-        try {
-            const response = await fetch(`${API}/pre-enrollments/${preEnrollmentId}/approve`, {
-                method: 'PUT', // Ou POST, dependendo da sua API
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Falha ao aprovar matrícula.');
-            }
-
-            alert('Matrícula aprovada com sucesso!');
-            // Talvez redirecionar para a lista de alunos ou de matrículas aprovadas
-            router.push('/admin/alunos'); 
-
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setIsApproving(false);
-        }
-        */
-    // Remover após implementar a lógica real
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simula delay
-    alert("Lógica de aprovação a ser implementada!");
-    setIsApproving(false);
+      alert("Aprovado com sucesso!");
+      setIsDialogOpen(false); // Fecha o modal
+      fetchPendentes(); // Atualiza a lista
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      alert("Erro ao aprovar.");
+    } finally {
+      setIsApproving(false);
+    }
   };
 
-  // --- Renderização Condicional ---
-  if (isLoading) {
-    // Mostra "esqueletos" enquanto carrega
-    return (
-      <main className="container mx-auto p-8">
-        <Skeleton className="h-8 w-1/2 mb-4" />
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <Skeleton className="h-4 w-1/4" />{" "}
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-1/4" />{" "}
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-10 w-full mt-6" />
-          </CardContent>
-        </Card>
-      </main>
-    );
-  }
-
-  if (error || !preEnrollment) {
-    return (
-      <main className="container mx-auto p-8 text-center text-destructive">
-        {error || "Não foi possível carregar os dados da pré-matrícula."}
-      </main>
-    );
-  }
-
-  // --- Renderização Principal ---
   return (
     <main className="container mx-auto p-8">
-      <Button variant="outline" onClick={() => router.back()} className="mb-4">
-        &larr; Voltar para a Lista
-      </Button>
+      <h1 className="text-3xl font-bold mb-6">Aprovações Pendentes</h1>
 
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Revisão de Pré-Matrícula</CardTitle>
-          <CardDescription>
-            Revise os dados enviados pelo responsável e aprove a matrícula. ID:{" "}
-            {preEnrollment.id}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Exibição dos dados - Adicione todos os campos importantes aqui */}
-          <div>
-            <Label>Nome da Criança:</Label> <p>{preEnrollment.childName}</p>
-          </div>
-          <div>
-            <Label>Data de Nascimento:</Label> <p>{preEnrollment.birthDate}</p>
-          </div>
-          <div>
-            <Label>Nome do Responsável:</Label>{" "}
-            <p>{preEnrollment.guardianName}</p>
-          </div>
-          <div>
-            <Label>CPF do Responsável:</Label>{" "}
-            <p>{preEnrollment.guardianCpf}</p>
-          </div>
-          <div>
-            <Label>Telefone:</Label> <p>{preEnrollment.guardianPhone}</p>
-          </div>
-          <div>
-            <Label>Endereço:</Label>{" "}
-            <p>{`${preEnrollment.addressStreet}, ${preEnrollment.addressNumber} - ${preEnrollment.addressNeighborhood}`}</p>
-          </div>
-          {/* Adicione outros campos relevantes da pré-matrícula aqui */}
-          <div>
-            <Label>Status Atual:</Label>{" "}
-            <p className="font-semibold">{preEnrollment.status}</p>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-end">
-          {/* Botão de Aprovação */}
-          {preEnrollment.status === "PENDENTE" && ( // Só mostra o botão se estiver pendente
-            <Button onClick={handleApprove} disabled={isApproving}>
-              {isApproving ? "Aprovando..." : "Aprovar Matrícula"}
-            </Button>
+      {/* TABELA SIMPLES */}
+      <div className="border rounded-lg p-4">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome da Criança</TableHead>
+              <TableHead>Responsável</TableHead>
+              <TableHead className="text-right">Ação</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pendentes.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>{item.childName}</TableCell>
+                <TableCell>{item.guardianName}</TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      // AQUI É A SIMPLIFICAÇÃO:
+                      // Como já temos os dados, apenas passamos o item para o estado
+                      setSelectedStudent(item);
+                      setIsDialogOpen(true);
+                    }}
+                  >
+                    Revisar
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* MODAL (JANELA) DE DETALHES */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Aluno</DialogTitle>
+          </DialogHeader>
+
+          {/* Exibe os dados do aluno selecionado */}
+          {selectedStudent && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-500">Nome:</Label>{" "}
+                  <p>{selectedStudent.childName}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-500">Nascimento:</Label>{" "}
+                  <p>{selectedStudent.birthDate}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-500">Raça/Cor:</Label>{" "}
+                  <p>{selectedStudent.race}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-500">Sexo:</Label>{" "}
+                  <p>{selectedStudent.gender}</p>
+                </div>
+              </div>
+
+              <hr />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-500">Responsável:</Label>{" "}
+                  <p>{selectedStudent.guardianName}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-500">CPF:</Label>{" "}
+                  <p>{selectedStudent.guardianCpf}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-500">Telefone:</Label>{" "}
+                  <p>{selectedStudent.guardianPhone}</p>
+                </div>
+              </div>
+
+              <hr />
+
+              <div>
+                <Label className="text-gray-500">Endereço:</Label>
+                <p>
+                  {selectedStudent.addressStreet},{" "}
+                  {selectedStudent.addressNumber}
+                </p>
+                <p>
+                  {selectedStudent.addressNeighborhood} -{" "}
+                  {selectedStudent.addressCity}
+                </p>
+              </div>
+
+              {/* Exemplo de Booleano Simples: Só mostra se for verdadeiro */}
+              {selectedStudent.hasHealthIssues && (
+                <p className="text-red-600 font-bold">
+                  ⚠️ Possui problema de saúde:{" "}
+                  {selectedStudent.healthIssuesDescription}
+                </p>
+              )}
+            </div>
           )}
-        </CardFooter>
-      </Card>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleApprove} disabled={isApproving}>
+              {isApproving ? "Salvando..." : "Aprovar Matrícula"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
